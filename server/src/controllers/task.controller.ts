@@ -1,22 +1,18 @@
-import type { Request, Response } from "express";
 import { createTaskSchema, updateTaskSchema } from "../schemas/task.schema.js";
 import { taskRepository } from "../repositories/task.repository.js";
+import { AppError } from "../errors/app-error.js";
+import { asyncHandler } from "../utils/async-handler.js";
 
 export const taskController = {
-  async create(req: Request, res: Response) {
+  create: asyncHandler(async (req, res) => {
     if (!req.user) {
-      return res.status(401).json({
-        message: "Authentication required",
-      });
+      throw new AppError("Authentication required", 401);
     }
 
     const result = createTaskSchema.safeParse(req.body);
 
     if (!result.success) {
-      return res.status(400).json({
-        message: "Validation failed",
-        errors: result.error.flatten(),
-      });
+      throw new AppError("Validation failed", 400);
     }
 
     const task = await taskRepository.create({
@@ -28,13 +24,11 @@ export const taskController = {
     return res.status(201).json({
       task,
     });
-  },
+  }),
 
-  async getMyTasks(req: Request, res: Response) {
+  getMyTasks: asyncHandler(async (req, res) => {
     if (!req.user) {
-      return res.status(401).json({
-        message: "Authentication required",
-      });
+      throw new AppError("Authentication required", 401);
     }
 
     const tasks = await taskRepository.findByUserId(req.user.id);
@@ -42,58 +36,45 @@ export const taskController = {
     return res.status(200).json({
       tasks,
     });
-  },
+  }),
 
-  async getById(req: Request, res: Response) {
+  getById: asyncHandler(async (req, res) => {
     if (!req.user) {
-      return res.status(401).json({
-        message: "Authentication required",
-      });
+      throw new AppError("Authentication required", 401);
     }
 
     const taskId = req.params.id;
 
     if (typeof taskId !== "string") {
-      return res.status(400).json({
-        message: "Invalid task ID",
-      });
+      throw new AppError("Invalid task ID", 400);
     }
 
     const task = await taskRepository.findByIdAndUserId(taskId, req.user.id);
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found",
-      });
+      throw new AppError("Task not found", 404);
     }
 
     return res.status(200).json({
       task,
     });
-  },
+  }),
 
-  async update(req: Request, res: Response) {
+  update: asyncHandler(async (req, res) => {
     if (!req.user) {
-      return res.status(401).json({
-        message: "Authentication required",
-      });
+      throw new AppError("Authentication required", 401);
     }
 
     const taskId = req.params.id;
 
     if (typeof taskId !== "string") {
-      return res.status(400).json({
-        message: "Invalid task ID",
-      });
+      throw new AppError("Invalid task ID", 400);
     }
 
     const result = updateTaskSchema.safeParse(req.body);
 
     if (!result.success) {
-      return res.status(400).json({
-        message: "Validation failed",
-        errors: result.error.flatten(),
-      });
+      throw new AppError("Validation failed", 400);
     }
 
     const task = await taskRepository.updateByIdAndUserId(
@@ -103,41 +84,33 @@ export const taskController = {
     );
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found",
-      });
+      throw new AppError("Task not found", 404);
     }
 
     return res.status(200).json({
       task,
     });
-  },
+  }),
 
-  async delete(req: Request, res: Response) {
+  delete: asyncHandler(async (req, res) => {
     if (!req.user) {
-      return res.status(401).json({
-        message: "Authentication required",
-      });
+      throw new AppError("Authentication required", 401);
     }
 
     const taskId = req.params.id;
 
     if (typeof taskId !== "string") {
-      return res.status(400).json({
-        message: "Invalid task ID",
-      });
+      throw new AppError("Invalid task ID", 400);
     }
 
     const task = await taskRepository.deleteByIdAndUserId(taskId, req.user.id);
 
     if (!task) {
-      return res.status(404).json({
-        message: "Task not found",
-      });
+      throw new AppError("Task not found", 404);
     }
 
     return res.status(200).json({
       message: "Task deleted successfully",
     });
-  },
+  }),
 };

@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { AppError } from "../errors/app-error.js";
 
 type UserRole = "user" | "admin";
 
@@ -11,9 +12,7 @@ export function requireRole(...allowedRoles: UserRole[]) {
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({
-        message: "Forbidden",
-      });
+      throw new AppError("Forbidden", 403);
     }
 
     next();
