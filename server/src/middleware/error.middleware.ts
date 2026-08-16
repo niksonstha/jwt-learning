@@ -1,21 +1,21 @@
-import type {
-  NextFunction,
-  Request,
-  Response,
-} from "express";
+import type { NextFunction, Request, Response } from "express";
+
 import { AppError } from "../errors/app-error.js";
 
 export function errorHandler(
   err: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   console.error(err);
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       message: err.message,
+      ...(err.details !== undefined && {
+        errors: err.details,
+      }),
     });
   }
 
