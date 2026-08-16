@@ -1,4 +1,11 @@
-import { pgEnum, pgTable, uuid, varchar, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgEnum,
+  pgTable,
+  uuid,
+  varchar,
+  timestamp,
+  text,
+} from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
 
@@ -20,6 +27,22 @@ export const users = pgTable("users", {
   }).notNull(),
 
   role: userRoleEnum("role").notNull().default("user"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const tasks = pgTable("tasks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  title: varchar("title", {
+    length: 200,
+  }).notNull(),
+
+  description: text("description"),
+
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
